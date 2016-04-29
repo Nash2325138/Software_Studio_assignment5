@@ -6,7 +6,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.JFrame;
 
 enum GameState{
-	BEGINNING, RUNNING, END
+	BEGIN, RUNNING, WAITING, END
 }
 /*
 我口水好多＝ ＝

@@ -23,16 +23,23 @@ import javax.swing.JTextField;
 
 public class TypingPanel extends JPanel implements KeyListener, Runnable {
 	private GameStage gs;
-	private String[] knownFilePath, unknownFilePath;
-	public JTextField textField;
+	private String[] knownFilePath = new String[51];
+	private String[] unknownFilePath = new String[73];;
+	private JTextField textField;
 	
-	private HashMap<String, String> knownMap, allMap;
-	private int []knownOrder;
-	private int []unknownOrder;
+	private HashMap<String, String> knownMap = new HashMap<String, String>();
+	private HashMap<String, String> allMap = new HashMap<String, String>();
+	
+
+	private int []knownOrder = new int[51];
+	private int []unknownOrder = new int[73];
 	private int knownIter=0, unknownIter=0;
 	
-	private boolean isKnownLeft;
-	private int bothKnownCount=0;
+	//private boolean isKnownLeft;
+	//private int bothKnownCount=0;
+	private boolean nowIsKnown;
+	private boolean anotherIsOK;
+	private boolean correct;
 	
 	private int wordY;
 	private BufferedImage knownImg, unknownImg;
@@ -53,79 +60,76 @@ public class TypingPanel extends JPanel implements KeyListener, Runnable {
 		this.textField.addKeyListener(this);
 		this.add(textField);
 		
-		this.knownFilePath = new String[51];
-		File file = new File("materials/known_words.txt");
-		FileInputStream fileInput = null;
 		try {
+			File file = new File("materials/known_words.txt");
+			FileInputStream fileInput = null;
 			fileInput = new FileInputStream(file);
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		Scanner scanner = new Scanner(fileInput);
-		
-		knownMap = new HashMap<String, String>();
-		allMap = new HashMap<String, String>();
-		while(scanner.hasNext()){
-			String line = scanner.nextLine();
-			//System.out.println(line);
-			String[] store = line.split(" ");
-			knownMap.put(store[0], store[1]);
-			allMap.put(store[0], store[1]);
-		}
-		int j = 0;
-		//System.out.println("Before iterate knownMap");
-		for(HashMap.Entry<String, String> entry : knownMap.entrySet()){
-			//System.out.println(entry.getKey() + " " + entry.getValue());
-			knownFilePath[j++] = entry.getKey();
-		}
-		scanner.close();
-		try {
+			Scanner scanner = new Scanner(fileInput);
+			allMap = new HashMap<String, String>();
+			while(scanner.hasNext()){
+				String line = scanner.nextLine();
+				//System.out.println(line);
+				String[] store = line.split(" ");
+				knownMap.put(store[0], store[1]);
+				allMap.put(store[0], store[1]);
+			}
+			int j = 0;
+			//System.out.println("Before iterate knownMap");
+			for(HashMap.Entry<String, String> entry : knownMap.entrySet()){
+				//System.out.println(entry.getKey() + " " + entry.getValue());
+				knownFilePath[j++] = entry.getKey();
+			}
+			scanner.close();
 			fileInput.close();
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		file = new File("materials/unknown_words.txt");
+		
 		try {
+			File file = new File("materials/unknown_words.txt");
+			FileInputStream fileInput = null;
 			fileInput = new FileInputStream(file);
+			Scanner scanner = new Scanner(fileInput);
+			int j=0;
+			while(scanner.hasNext()){
+				unknownFilePath[j++] = scanner.next();
+				//System.out.println(unknownFilePath[j-1]);
+			}
+			scanner.close();
+			fileInput.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-			//System.out.println("yoyo");
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		scanner = new Scanner(fileInput);
-		j=0;
-		this.unknownFilePath = new String[73];
-		while(scanner.hasNext()){
-			unknownFilePath[j++] = scanner.next();
-			//System.out.println(unknownFilePath[j-1]);
-		}
-		scanner.close();
 		
-		this.knownOrder = new int[51];
-		this.unknownOrder = new int[73];
 		System.out.println(knownOrder.length);
 		System.out.println(unknownOrder.length);
 		this.shuffleOrder(knownOrder, knownOrder.length);
 		this.shuffleOrder(unknownOrder, unknownOrder.length);
 		
-		this.wordUpdate();
+		anotherIsOK = false;
+		wordY = 20000;
 		
-		Random random = new Random();
-		isKnownLeft = random.nextBoolean();
 	}
 	@Override
 	protected void paintComponent(Graphics g) {
 		// TODO Auto-generated method stub
 		super.paintComponent(g);
-		if(isKnownLeft){
+		/*if(isKnownLeft){
 			g.drawImage(knownImg, 10, wordY, null);
 			g.drawImage(unknownImg, knownImg.getWidth()+20, wordY, null);
 		} else {
 			g.drawImage(unknownImg, 10, wordY, null);
 			g.drawImage(knownImg, unknownImg.getWidth()+20, wordY, null);
+		}*/
+		if(nowIsKnown){
+			g.drawImage(knownImg, 10, wordY, null);
+		} else {
+			g.drawImage(unknownImg, 10, wordY, null);
 		}
 	}
 	@Override
@@ -138,16 +142,53 @@ public class TypingPanel extends JPanel implements KeyListener, Runnable {
 				Thread.sleep(45);
 				if(wordY < this.gs.getHeight() - 70) wordY+=2;
 				else {
-					wordUpdate();
-					textField.setText("");
+					wordY = 0;
 				}
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
 			this.repaint();
 		}
+	}
+	public void swapWord(){
+		Random random = new Random();
+		if(random.nextInt(51+73) < 51)
+		{
+			nowIsKnown = true;
+			knownIter++;
+			if(knownIter >= knownOrder.length){
+				knownIter = 0;
+				shuffleOrder(knownOrder, knownOrder.length);
+			}
+			try {
+				String path = new String("materials/img/known/" + knownFilePath[knownOrder[knownIter]]);
+				knownImg = ImageIO.read(new File(path));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		else
+		{
+			nowIsKnown = false;
+			unknownIter++;
+			if(unknownIter >= unknownFilePath.length){
+				unknownIter = 0;
+				shuffleOrder(unknownOrder, unknownOrder.length);
+			}
+			try {
+				String path = new String("materials/img/unknown/" + unknownFilePath[unknownOrder[unknownIter]]);
+				unknownImg = ImageIO.read(new File(path));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+		wordY = 0;
+	}
+	public void setAnotherIsOK(boolean anotherIsOK) {
+		this.anotherIsOK = anotherIsOK;
 	}
 	@Override
 	public void keyTyped(KeyEvent e) {
@@ -156,8 +197,29 @@ public class TypingPanel extends JPanel implements KeyListener, Runnable {
 	}
 	@Override
 	public void keyPressed(KeyEvent e) {
+		if(e.getKeyCode()==KeyEvent.VK_ENTER){
+			if(gs.state==GameState.BEGIN){
+				gs.client.sendServerMessage("OK");
+				while(true){
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException e1) {
+						e1.printStackTrace();
+					}
+					if(anotherIsOK){
+						gs.start();
+						break;
+					}
+				}
+			} else if (gs.state==GameState.RUNNING){
+				System.out.println("now it's running");
+			} else if (gs.state==GameState.END){
+				System.out.println("now it's the end");
+			}
+			textField.setText("");
+		}
 		// TODO Auto-generated method stub
-		if(gs.state==GameState.BEGINNING){
+		/*if(gs.state==GameState.BEGINNING){
 			if(e.getKeyCode()==KeyEvent.VK_ENTER){
 				gs.state = GameState.RUNNING;
 				gs.start();
@@ -213,7 +275,7 @@ public class TypingPanel extends JPanel implements KeyListener, Runnable {
 			}
 			else if(e.getKeyChar()==KeyEvent.VK_ESCAPE){
 			}
-		}
+		}*/
 		
 	}
 	@Override
@@ -233,7 +295,7 @@ public class TypingPanel extends JPanel implements KeyListener, Runnable {
 			order[i] = temp;
 		}
 	}
-	private void wordUpdate()
+	/*private void wordUpdate()
 	{
 		if(bothKnownCount > 0){
 			wordUpdate_bothKnown();
@@ -291,7 +353,7 @@ public class TypingPanel extends JPanel implements KeyListener, Runnable {
 			e.printStackTrace();
 		}
 		wordY = 0;
-	}
+	}*/
 	
 	public void outPutUnknownMap()
 	{

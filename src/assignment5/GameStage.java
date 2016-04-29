@@ -16,7 +16,7 @@ public class GameStage extends AbstractGameStage {
 		typingWidth = 400;
 		displayWidth = 800;
 		winScore = 100;
-		state = GameState.BEGINNING;
+		state = GameState.BEGIN;
 		
 		displayPanel = new DisplayPanel(new Rectangle(typingWidth, 0, displayWidth, windowHeight), this);
 		displayPanel.setVisible(true);
@@ -35,7 +35,7 @@ public class GameStage extends AbstractGameStage {
 	@Override
 	public void start() {
 		// TODO Auto-generated method stub
-		
+		state = GameState.RUNNING;
 		typingThread.start();
 		displayThread.start();
 		this.setVisible(true);
