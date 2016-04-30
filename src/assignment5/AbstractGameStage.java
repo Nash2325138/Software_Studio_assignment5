@@ -6,20 +6,9 @@ import java.awt.image.BufferedImage;
 import javax.swing.JFrame;
 
 enum GameState{
-	BEGIN, RUNNING, WAITING, END
+	BEGIN, RUNNING, WAITING, REPEAT, END
 }
-/*
-我口水好多＝ ＝
-我含不到五分鐘吧...
-會滿出來＝﹍﹍﹍﹍＝
-漱口水吞下去會怎樣，可是我已經吞一點了
-....
-已經十點惹...
-你怎麼不帶電腦來打作業
-那如果不想看到呢..會撞車
-陀螺儀
-等等幫我顧電腦，我會放著睡眠
-*/
+// abstract class of GameStage
 public abstract class AbstractGameStage extends JFrame{
 	protected Client client;
 	
@@ -34,11 +23,11 @@ public abstract class AbstractGameStage extends JFrame{
 	abstract public void start();
 	abstract public void replay();
 	abstract public void end();
+	// define some simple function
 	public void addScore(int addition){
 		this.currentScore += addition;
 		this.displayPanel.updateScore(currentScore);
 		if(currentScore >= winScore) {
-			this.state = GameState.END;
 			this.end();
 		}
 		if(addition > 0) displayPanel.duckSwim();

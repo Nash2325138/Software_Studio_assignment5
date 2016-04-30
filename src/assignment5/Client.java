@@ -73,20 +73,50 @@ public class Client{
 		}
 		
 		public void run(){
-			System.out.println("ClientThread Start()");
+			System.out.println("ClientReadThread Start()");
 			while(true){
 				try{
 					String line = this.reader.readLine();
+					System.out.println("Read: "+line);
+					// use state of game stage to send message to server
+					// details are illustrated in Readme.txt
 					if(gameStage.state==GameState.BEGIN){
 						if(line.equals("OK")){
-							
+							System.out.println("get OK");
+							String newWordPath = this.reader.readLine();
+							gameStage.typingPanel.setWordPath(newWordPath);
+							System.out.println("get first word path: "+newWordPath);
+							gameStage.start();
+						} else {
+							System.out.println("server sends something weird: "+line);
 						}
 					}
 					else if(gameStage.state==GameState.RUNNING){
-						
+						System.out.println("RUNNING state should not receive any line");
 					}
 					else if(gameStage.state==GameState.WAITING){
-						
+						if(line.equals("Same"))
+						{
+							gameStage.addScore(4);
+							gameStage.state = GameState.RUNNING;
+							
+							String newWordPath = this.reader.readLine();
+							gameStage.typingPanel.setWordPath(newWordPath);
+							System.out.println("get new word path: "+newWordPath);
+						}
+						else
+						{
+							gameStage.state = GameState.REPEAT;
+							try {
+								Thread.sleep(2000);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+							gameStage.state = GameState.RUNNING;
+						}
+					}
+					else if(gameStage.state==GameState.REPEAT){
+						System.out.println("REPEAT state should not receive any line");
 					}
 					else if(gameStage.state==GameState.END){
 						

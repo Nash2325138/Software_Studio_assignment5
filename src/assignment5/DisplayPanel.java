@@ -20,12 +20,15 @@ enum DuckDirection{
 	UP, DOWN;
 }
 
+// to display the yellow duck, the ball, and the background
 public class DisplayPanel extends JPanel implements Runnable {
 	private BufferedImage ballImage, bgImage, winImage;
 	private JLabel scoreLabel;
 	private int ballX, bgShiftX;
 	GameStage gs;
 	YellowDuck duck;
+	
+	// make yellow duck a object of a inner class
 	private class YellowDuck extends JPanel{
 		private int X, Y;
 		private final int anchorY;
@@ -105,6 +108,8 @@ public class DisplayPanel extends JPanel implements Runnable {
 			} catch(InterruptedException e) {
 				e.printStackTrace();
 			}
+			
+			// make the duck sink and rise
 			if(duck.direction==DuckDirection.UP && duck.Y > duck.anchorY+10){
 				duck.direction = DuckDirection.DOWN;
 			} else if(duck.direction==DuckDirection.DOWN && duck.Y < duck.anchorY-10){
@@ -116,9 +121,11 @@ public class DisplayPanel extends JPanel implements Runnable {
 			duck.repaint();
 		}
 	}
+	// make the score label display the correct score
 	public void updateScore(int newScore){
 		scoreLabel.setText("Score " + newScore);
 	}
+	// if the client is correct, make the duck forward for certain distance
 	public void duckSwim() {
 		// TODO Auto-generated method stub
 		if(gs.currentScore <= gs.winScore - 40){
